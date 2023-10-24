@@ -19,20 +19,6 @@ const db = mysql.createConnection(
   console.log(`Connected to the staff_db database.`)
 );
 
-// app.get('/', (req, res) =>
-// db.query('SELECT * FROM staff_db', function (err, results) {
-//   console.log(results)
-//   res.json({results})
-// })
-// );
-
-// app.post('/api/new-movie', (req, res) =>
-// db.query('INSERT INTO movies (movie_name) VALUES ("Us")', function (err, results) {
-//   console.log(results)
-//   res.json({results})
-// })
-// );
-
 app.post('/api/new-role', ({ body }, res) => {
   const sql = 'INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)';
   const params = [body.title, body.salary, body.department_id];
@@ -48,9 +34,53 @@ app.post('/api/new-role', ({ body }, res) => {
   });
 });
 
+app.post('/api/new-employee', ({ body }, res) => {
+  const sql = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
+  const params = [body.first_name, body.last_name, body.role_id, body.manager_id];
 
-app.get('/department', (req, res) =>
+  db.query(sql, params, function (err, results) {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while inserting the role.' });
+    } else {
+      console.log(results);
+      res.json({ message: 'Employee inserted successfully.' });
+    }
+  });
+});
+
+app.post('/api/new-department', ({ body }, res) => {
+  const sql = 'INSERT INTO department (department_name) VALUES (?)';
+  const params = [body.department_name];
+
+  db.query(sql, params, function (err, results) {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while inserting the role.' });
+    } else {
+      console.log(results);
+      res.json({ message: 'Employee inserted successfully.' });
+    }
+  });
+});
+
+
+app.get('/departments', (req, res) =>
 db.query('SELECT * FROM department', function (err, results) {
+  console.log(results)
+  res.json({results})
+})
+);
+
+app.get('/roles', (req, res) =>
+db.query('SELECT * FROM role', function (err, results) {
+  console.log(results)
+  res.json({results})
+})
+);
+
+app.get('/employees', (req, res) =>
+db.query('SELECT * FROM employee', function (err, results) {
   console.log(results)
   res.json({results})
 })
@@ -62,7 +92,6 @@ db.query('SELECT * FROM role', function (err, results) {
   res.json({results})
 })
 );
-
 
 app.delete('/api/role/:id', ({params}, res) => {
   const sql = 'DELETE FROM role WHERE id = ?';
@@ -80,30 +109,98 @@ app.delete('/api/role/:id', ({params}, res) => {
   })
   });
 
-// db.query('SELECT * FROM movies', function (err, results) {
-//   console.log(results);
-// });
+  app.delete('/api/department/:id', ({params}, res) => {
+    const sql = 'DELETE FROM department WHERE id = ?';
+    const param = [params.id]
+    
+    db.query(sql, param,  function (err, results) {
+      if (err) {
+        res.statusMessage(400).json({err: err})
+      } else if (!results.affectedRows) {
+        res.json({message: 'id not found'})
+      } else {
+        console.log(results)
+        res.json({results, message: "success"})
+      }
+    })
+    });
 
-// db.query('SELECT * FROM reviews', function (err, results) {
-//   console.log(results);
-// });
+    app.delete('/api/employee/:id', ({params}, res) => {
+      const sql = 'DELETE FROM employee WHERE id = ?';
+      const param = [params.id]
+      
+      db.query(sql, param,  function (err, results) {
+        if (err) {
+          res.statusMessage(400).json({err: err})
+        } else if (!results.affectedRows) {
+          res.json({message: 'id not found'})
+        } else {
+          console.log(results)
+          res.json({results, message: "success"})
+        }
+      })
+      });
 
-// db.query('INSERT INTO role (title, salary, department_id) VALUES (?)', ("CMO", 165000, 3) , function (err, results) {
-//   console.log(results);
-//   console.log(err);
-// });
+      app.put('/api/edit-employee/:id', (req, res) => {
+        // Handle the PUT request here
+        const updatedEmployeeData = req.body;
+        const { id } = req.params;
+        const { first_name, last_name, role_id, manager_id } = updatedEmployeeData;
+        
+        const sql = 'UPDATE employee SET first_name=?, last_name=?, role_id=?, manager_id=? WHERE id=?';
+        const params = [first_name, last_name, role_id, manager_id, id];
+        
+        db.query(sql, params, (err, results) => {
+          if (err) {
+            console.error(err);
+            res.status(500).json({ error: 'An error occurred while updating the employee.' });
+          } else {
+            console.log('Employee updated successfully.');
+            res.json({ message: 'Employee updated successfully.' });
+          }
+        });
+        
+      });
 
-// db.query('DELETE FROM movies WHERE id = ?', 1,  function (err, results) {
-//   console.log(results);
-// });
+      app.put('/api/edit-role/:id', (req, res) => {
+        const updatedRole = req.body;
+        const { id } = req.params;
+        const { title, salary, department_id } = updatedRole;
+        
+        const sql = 'UPDATE role SET title=?, salary=?, department_id=? WHERE id=?';
+        const params = [title, salary, department_id, id];
+        
+        db.query(sql, params, (err, results) => {
+          if (err) {
+            console.error(err);
+            res.status(500).json({ error: 'An error occurred while updating the employee.' });
+          } else {
+            console.log('Employee updated successfully.');
+            res.json({ message: 'Employee updated successfully.' });
+          }
+        });
+        
+      });
 
-// db.query('SELECT * FROM movies join reviews ON movies.id = reviews.movie_id', 1,  function (err, results) {
-//   console.log(results);
-// });
-
-// db.query('SELECT movies FROM movie_name join reviews ON movies.id = reviews.movie_id', 1,  function (err, results) {
-//   console.log(results);
-// });
+      app.put('/api/edit-department/:id', (req, res) => {
+        const updatedDepartment = req.body;
+        const { id } = req.params;
+        const { department_name } = updatedDepartment;
+        
+        const sql = 'UPDATE department SET department_name=? WHERE id=?';
+        const params = [department_name, id];
+        
+        db.query(sql, params, (err, results) => {
+          if (err) {
+            console.error(err);
+            res.status(500).json({ error: 'An error occurred while updating the employee.' });
+          } else {
+            console.log('Employee updated successfully.');
+            res.json({ message: 'Employee updated successfully.' });
+          }
+        });
+        
+      });
 
 app.use((req, res) => {
   res.status(404).end();
