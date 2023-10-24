@@ -36,7 +36,7 @@ function init () {
 
           break;
         case 'Update Department':
-          // updateDepartment()
+          updateDepartment()
           break;
         case 'Update Employee':
 
@@ -121,14 +121,13 @@ function removeDepartment() {
           {
             type: 'list',
             message: 'Which department would you like to remove?',
-            choices: departments, // Use the departments array as choices
+            choices: departments, 
             name: 'removeDep',
           },
         ])
         .then(({ removeDep }) => {
           console.log(`Removing department: ${removeDep}`);
 
-          // Now, you can write the query to delete the department
           const sql = 'DELETE FROM department WHERE department_name = ?';
           db.query(sql, removeDep, function (err, results) {
             if (err) {
@@ -136,7 +135,6 @@ function removeDepartment() {
               init()
             } else {
               console.log('Department removed.');
-              // console.log(getDepartments()); // You may want to call a function to update the department list
               init()
             }
           });
@@ -144,3 +142,57 @@ function removeDepartment() {
     }
   });
 }
+
+function updateDepartment() {
+  const departments = []
+  let departmentsArray;
+  db.query('SELECT * FROM department', function (err, results) {
+    if (err) {
+      // Handle the error, e.g., return an error response
+      console.error(err);
+    } else {
+      departmentsArray = results
+      results.forEach(department => {
+        departments.push(department.department_name);
+      });
+      inquirer
+        .prompt([
+          {
+            type: 'list',
+            message: 'Which department would you like to update?',
+            choices: departments, 
+            name: 'updateDep',
+          },
+          {
+            type: 'input',
+            message: 'What would you like to change the name too?',
+            name: 'newName',
+          },
+        ])
+        .then((update) => {
+          console.log(`Updating department: ${update.updateDep}`);
+
+          let params;
+          const sql = 'UPDATE department SET department_name=? WHERE id=?';
+
+          console.log(departmentsArray);
+
+          for (let index = 0; index < results.length; index++) {
+            const element = departmentsArray[index].department_name;
+            if (element === update.updateDep) {
+              params = [update.newName, departmentsArray[index].id]  
+            }
+          }           
+          console.log(params);
+          db.query(sql, params, (err, results) => {
+            if (err) {
+              console.error(err);
+            } else {
+              console.log('Department updated successfully.');
+              getDepartments()
+            }
+          })
+        })
+    }
+  })
+ }
