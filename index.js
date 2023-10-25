@@ -129,10 +129,10 @@ function addDepartment() {
       if (err) {
         console.log(err);
       } else {
-        console.log(results);
+        console.log('Department added');
+        init()
       }
     })
-    getDepartments()
   })
 }
 
@@ -204,22 +204,18 @@ function updateDepartment() {
 
           let params;
           const sql = 'UPDATE department SET department_name=? WHERE id=?';
-
-          console.log(departmentsArray);
-
           for (let index = 0; index < results.length; index++) {
             const element = departmentsArray[index].department_name;
             if (element === update.updateDep) {
               params = [update.newName, departmentsArray[index].id]  
             }
           }           
-          console.log(params);
           db.query(sql, params, (err, results) => {
             if (err) {
               console.error(err);
             } else {
               console.log('Department updated successfully.');
-              getDepartments()
+              init()
             }
           })
         })
@@ -276,7 +272,6 @@ function addEmployee() {
                 },
               ])
               .then((employee) => {
-                // console.log(employee);
                 console.log(`Adding employee: ${employee.firstName} ${employee.lastName}`);
 
                 const sql = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
@@ -296,16 +291,15 @@ function addEmployee() {
                       params = [employee.firstName, employee.lastName, roleId, employeesArray[index].id]
                     }  
                 }
-                  console.log(params);
                   
                   db.query(sql, params, function (err, results) {
                     if (err) {
                       console.log(err);
                   } else {
-                    console.log(results);
+                    console.log('Employee added');
+                    init()
                   }
                 })
-                getEmployees()
               })
         }
       })
@@ -402,7 +396,6 @@ function updateEmployee() {
           },
         ])
           .then((updatedEmployeeInfo) => {
-            console.log(updatedEmployeeInfo);
             let newRole = roleDataArray.filter((role) => role.title === updatedEmployeeInfo.updatedRole)
             const newManagerIdString = updatedEmployeeInfo.updatedManager.match(/\d+/g);
             const newManageId = newManagerIdString.map(number => parseInt(number, 10));
@@ -468,7 +461,6 @@ function removeRole() {
     },
   ])
   .then(({roleRemove}) => {
-    console.log(roleRemove);
     const param = roleDataArray.filter((role) => role.title === roleRemove);
     db.query('DELETE FROM role WHERE id = ?', param[0].id,  function (err, results) {
           if (err) {
@@ -519,7 +511,6 @@ function updateRole() {
       const roleId = roleDataArray.filter((role) => role.title === roleToUpdate)
       const departmentId = departmentDataArray.filter((department) => department.department_name === response.newDepartment);
       const params = [response.newTitle, response.newSalary, departmentId[0].id, roleId[0].id]
-      console.log(roleId);
       db.query('UPDATE role SET title=?, salary=?, department_id=? WHERE id=?', params,  function (err, results) {
         if (err) {
           console.log(err);
