@@ -1,12 +1,13 @@
 # Employee-tracker
 
-https://github.com/MrDietCola/Logo-generator
+https://github.com/MrDietCola/Employee-tracker
+
+https://drive.google.com/file/d/11WT-tBa4Z_JxQaeAxFc-oQEhfxcY3BOh/view
 
 ## Description
-This is a SVG generator. It takes user input from the command line and then generates a SVG based of the specified perameters. 
+This is a terminal prompt to allow the user the ability to navigate through a database of employees and add, remove, update and view employees, roles and departments.
 
-![Alt text](<Images/Screenshot (18).png>)
-<video src="videos/Logo-generator.mp4" controls title="Title"></video>
+![Alt text](<assets/images/Screenshot (25).png>)
 
 ## Installation
 
@@ -14,7 +15,7 @@ N/A
 
 ## Usage
 
-The purpose of this app is to allow the user a fast and easy way to generate a custom svg for them to use. 
+The purpose of this app is to allow the user an easy way to manage their staff in a clear and concise way.
 
 ## License
 
