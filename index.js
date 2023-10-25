@@ -73,7 +73,7 @@ function init () {
           addEmployee()
           break;
         case 'Add Role':
-          
+          addRole()
           break;
         case 'Update Department':
           updateDepartment()
@@ -82,7 +82,7 @@ function init () {
           updateEmployee()
           break;
         case 'Update Role':
-
+          updateRole()
           break;
         case 'View All Departments':
           console.table(departmentDataArray)
@@ -103,7 +103,7 @@ function init () {
           removeEmployee()
           break;
         case 'Remove Role':
-
+          removeRole()
           break;
         default:
       }
@@ -404,31 +404,133 @@ function updateEmployee() {
           .then((updatedEmployeeInfo) => {
             console.log(updatedEmployeeInfo);
             let newRole = roleDataArray.filter((role) => role.title === updatedEmployeeInfo.updatedRole)
-            // const newManagerIdString = employeeDataArray.filter((employee) => `${employee.first_name} ${employee.last_name}` === updatedEmployeeInfo.updatedManager)
             const newManagerIdString = updatedEmployeeInfo.updatedManager.match(/\d+/g);
             const newManageId = newManagerIdString.map(number => parseInt(number, 10));
             const employeeIdString = employeeToUpdate.match(/\d+/g);
             const employeeId = employeeIdString.map(number => parseInt(number, 10));
             let params = [updatedEmployeeInfo.updatedFirstName, updatedEmployeeInfo.updatedLastName, newRole[0].id, newManageId, employeeId];
             
-            updateEmployeeQuery(params)
+            db.query('UPDATE employee SET first_name=?, last_name=?, role_id=?, manager_id=? WHERE id=?', params, (err, results) => {
+              if (err) {
+                console.error(err);
+              } else {
+                console.log('Employee updated successfully.');
+                init()
+              }
+        })
           })    
     })
 }
 
-  function updateEmployeeQuery(data) {
-    db.query('UPDATE employee SET first_name=?, last_name=?, role_id=?, manager_id=? WHERE id=?', data, (err, results) => {
+function addRole() {
+  return inquirer
+  .prompt([
+    {
+      type: 'input',
+      message: 'Enter the title of the role:',
+      name: 'title',
+    },
+    {
+      type: 'number',
+      message: 'Enter the salary for the role:',
+      name: 'salary',
+    },
+    {
+      type: 'list',
+      message: 'Choose a department',
+      choices: departments,
+      name: 'department',
+    },
+  ])
+  .then((role) => {
+    // Create an object with the role information
+    const departmentObj = departmentDataArray.filter((department) => department.department_name === role.department)
+    const params = [role.title, role.salary, departmentObj[0].id];
+    db.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', params, function (err, results) {
           if (err) {
-            console.error(err);
+            console.log(err);
           } else {
-            console.log('Employee updated successfully.');
+            console.log('Role succesfully added');
+            init()
+          }          
+        });    
+  });
+}
+
+function removeRole() {
+  return inquirer
+  .prompt([
+    {
+      type: 'list',
+      message: 'Which role would you like to remove?',
+      choices: roles,
+      name: 'roleRemove',
+    },
+  ])
+  .then(({roleRemove}) => {
+    console.log(roleRemove);
+    const param = roleDataArray.filter((role) => role.title === roleRemove);
+    db.query('DELETE FROM role WHERE id = ?', param[0].id,  function (err, results) {
+          if (err) {
+            res.statusMessage(400).json({err: err})
+          } else if (!results.affectedRows) {
+            console.log({message: 'Id not found'});
+          } else {
+            console.log('Role successfully removed')
             init()
           }
+        })
+  })
+}
+
+function updateRole() {
+  let roleToUpdate;
+  return inquirer
+  .prompt([
+    {
+      type: 'list',
+      message: 'Which role would you like to update?',
+      choices: roles,
+      name: 'roleUpdate',
+    },
+  ])
+  .then(({roleUpdate}) => {
+    roleToUpdate = roleUpdate;
+    inquirer
+    .prompt([
+      {
+        type: 'input',
+        message: 'Enter the updated role title:',
+        name: 'newTitle',
+      },
+      {
+        type: 'number',
+        message: 'Enter the updated salary:',
+        name: 'newSalary',
+      },
+      {
+        type: 'list',
+        message: 'Pick a new department',
+        choices: departments,
+        name: 'newDepartment',
+      },
+    ])
+    .then ((response) => {
+      const roleId = roleDataArray.filter((role) => role.title === roleToUpdate)
+      const departmentId = departmentDataArray.filter((department) => department.department_name === response.newDepartment);
+      const params = [response.newTitle, response.newSalary, departmentId[0].id, roleId[0].id]
+      console.log(roleId);
+      db.query('UPDATE role SET title=?, salary=?, department_id=? WHERE id=?', params,  function (err, results) {
+        if (err) {
+          console.log(err);
+        } else if (!results.affectedRows) {
+          console.log({message: 'Id not found'});
+          init()
+        } else {
+          console.log('Role successfully updated')
+          init()
+        }
+      })
     })
-  }
-
-// function removeSelf(self) {
-//   const updatedEmployees = employees.filter((employee) => employee !== self)
-//   console.log(updatedEmployees);
-// }
-
+  })
+}
