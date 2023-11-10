@@ -11,41 +11,6 @@ const db = mysql.createConnection(
   console.log(`Connected to the staff_db database.`)
 );
 
-function getData() {
-  db.query('SELECT * FROM department', function (err, results) {
-    if (err) {
-      // Handle the error, e.g., return an error response
-      return console.error(err);
-    } else {
-      departmentDataArray = results;
-      results.forEach(department => departments.push(department.department_name));
-    }
-  }) 
-  db.query('SELECT * FROM role', function (err, results) {
-    if (err) {
-      // Handle the error, e.g., return an error response
-      return console.error(err);
-    } else {
-      roleDataArray = results;
-      results.forEach(role => roles.push(role.title))
-    }
-  })
-  db.query('SELECT * FROM employee', function (err, results) {
-    if (err) {
-      // Handle the error, e.g., return an error response
-      return console.error(err);
-    } else {
-      employeeDataArray = results;
-      results.forEach(employee => employees.push(`${employee.first_name} ${employee.last_name}`));
-      const ids = [] 
-      employeeDataArray.forEach(employee => ids.push(employee.id));
-      employeeList = employees.map((name, index) => `${name}, Id: ${ids[index]}`)
-    }
-  })
-}
-
-
-
 function init() {
   return inquirer
     .prompt([
@@ -161,14 +126,12 @@ function addDepartment() {
     },
   ])
   .then(({ departmentName }) => {
-    console.log(`Adding department: ${departmentName}`);
-
     const sql = 'INSERT INTO department (department_name) VALUES (?)';
     db.query(sql, departmentName, function (err, results) {
       if (err) {
         console.log(err);
       } else {
-        console.log('Department added');
+        console.log(`Department: ${departmentName} added`);
         init()
       }
     })
