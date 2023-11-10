@@ -95,7 +95,7 @@ async function viewAllEmployees() {
 async function viewAllRoles() {
   try {
     const roles = await roleModule.getRoles();
-    console.table(roles)
+    console.table(roles.viewAll)
     init()
   } catch (error) {
     console.error('An error occurred:', error);
@@ -112,8 +112,6 @@ async function viewAllDepartments() {
   }
 }
 
-init();
-
 async function addDepartment() {
   try {
     const answers = await inquirer.prompt([
@@ -123,9 +121,9 @@ async function addDepartment() {
         name: 'departmentName',
       },
     ]);
-
+    
     await departmentModule.addDepartmentToDatabase(answers.departmentName);
-
+    
     console.log(`Department: ${answers.departmentName} added successfully`);
     // Initiate any further actions or return to the main menu
   } catch (error) {
@@ -137,7 +135,7 @@ async function addRole() {
   try {
     // Fetch departments from the database
     const { names, objects } = await departmentModule.getDepartments();
-
+    
     // Execute the database query and then prompt the user
     const answers = await inquirer.prompt([
       {
@@ -157,7 +155,7 @@ async function addRole() {
         name: 'department',
       },
     ]);
-
+    
     const department = objects.find((dep) => dep.name === answers.department);
 
     // Create an object with the role information
@@ -166,10 +164,10 @@ async function addRole() {
       salary: answers.salary,
       departmentId: department.id,
     };
-
+    
     // Insert the new role into the database
     await roleModule.addRoleToDataBase(roleData);
-
+    
     console.log('Role successfully added');
     init()
     // Initiate any further actions or return to the main menu
@@ -178,53 +176,56 @@ async function addRole() {
   }
 }
 
+async function addEmployee() {
+  try {
+    const employees = await employeeModule.getEmployees();
+    const positions = await roleModule.getRoles()
+    console.log(employees.add);
+
+    const employeeData = await inquirer.prompt([
+      {
+        type: 'input',
+        message: 'First name?',
+        name: 'first_name',
+      },
+      {
+        type: 'input',
+        message: 'Last name?',
+        name: 'last_name',
+      },
+      {
+        type: 'list',
+        message: 'Choose a role',
+        choices: positions.names,
+        name: 'position',
+      },
+      {
+        type: 'list',
+        message: 'Choose a manager',
+        choices: employees.add,
+        name: 'manager',
+      },
+    ]);
+
+    const role = positions.objects.find((role) => role.role_title === employeeData.position);
+    const manager = employees.objects.find((employee) => `${employee.first_name} ${employee.last_name}` === employeeData.manager);
+
+    const employee = {
+      first_name: employeeData.first_name,
+      last_name: employeeData.last_name,
+      role_id: role.id,
+      manager_id: manager.employee_id
+    };
+
+    await employeeModule.addEmployeeToDatabase(employee);
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+}
+
+init();
 
 
-// function addRole() {
-//   const departments = []
-//   db.query('SELECT * FROM department', function (err, results) {
-//     if (err) {
-//       // Handle the error, e.g., return an error response
-//       return console.error(err);
-//     } else {
-//     departments.push(results.department_name);
-//     console.log(departments);
-//     // departments = results;
-//     }
-//   }) 
-//   return inquirer
-//   .prompt([
-//     {
-//       type: 'input',
-//       message: 'Enter the name of the role:',
-//       name: 'title',
-//     },
-//     {
-//       type: 'number',
-//       message: 'Enter the salary for the role:',
-//       name: 'salary',
-//     },
-//     {
-//       type: 'list',
-//       message: 'Choose a department',
-//       choices: departments,
-//       name: 'department',
-//     },
-//   ])
-//   .then((role) => {
-//     // Create an object with the role information
-//     const departmentObj = departmentDataArray.filter((department) => department.department_name === role.department)
-//     const params = [role.title, role.salary, departmentObj[0].id];
-//     db.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)', params, function (err, results) {
-//           if (err) {
-//             console.log(err);
-//           } else {
-//             console.log('Role succesfully added');
-//             init()
-//           }          
-//         });    
-//   });
-// }
 
 function removeDepartment() {
   const departments = []

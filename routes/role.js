@@ -10,17 +10,19 @@ const db = mysql.createPool(
 
 async function getRoles() {
   return new Promise((resolve, reject) => {
-    db.query('SELECT r.title AS role_title, r.salary, d.department_name FROM role r JOIN department d ON r.department_id = d.id', function (err, results) {
+    db.query('SELECT r.title AS role_title, r.salary, d.department_name, r.id FROM role r JOIN department d ON r.department_id = d.id', function (err, results) {
       if (err) {
         reject(err);
       } else {
-        // const departmentNames = results.map((department) => department.department_name);
-        // const departmentObjects = results.map((department) => ({
-        //   id: department.id,
-        //   name: department.department_name,
-        // }));
+        const roleNames = results.map((role) => role.role_title);
+        const viewAllRoles = results.map((role) => ({
+          title: role.role_title,
+          salary: role.salary,
+          department: role.department_name
 
-        resolve(results);
+        }))
+
+        resolve({ names: roleNames, viewAll: viewAllRoles, objects: results });
       }
     });
   });
