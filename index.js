@@ -44,17 +44,7 @@ function getData() {
   })
 }
 
-function viewAllEmployees() {
-  db.query('SELECT * FROM department', function (err, results) {
-    if (err) {
-      // Handle the error, e.g., return an error response
-      return console.error(err);
-    } else {
-      console.table(results)
-      init()
-    }
-  }) 
-}
+
 
 function init() {
   return inquirer
@@ -121,6 +111,30 @@ function init() {
     .catch((error) => {
       console.error('An error occurred:', error);
     });
+}
+
+function viewAllEmployees() {
+  db.query('SELECT * FROM department', function (err, results) {
+    if (err) {
+      // Handle the error, e.g., return an error response
+      return console.error(err);
+    } else {
+      console.table(results)
+      init()
+    }
+  }) 
+}
+
+function viewAllRoles() {
+  db.query('SELECT * FROM role', function (err, results) {
+    if (err) {
+      // Handle the error, e.g., return an error response
+      return console.error(err);
+    } else {
+      console.table(results)
+      init()
+    }
+  }) 
 }
 
 init();
