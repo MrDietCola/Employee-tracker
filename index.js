@@ -1,6 +1,5 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
-const employee = require('./routes/employee');
 
 const db = mysql.createConnection(
   {
@@ -11,14 +10,6 @@ const db = mysql.createConnection(
   },
   console.log(`Connected to the staff_db database.`)
 );
-
-const departments = [];
-const roles = [];
-const employees = [];
-let employeeList;
-let departmentDataArray;
-let roleDataArray;
-let employeeDataArray;
 
 function getData() {
   db.query('SELECT * FROM department', function (err, results) {
@@ -53,55 +44,83 @@ function getData() {
   })
 }
 
-function init () {
-  getData()
+function viewAllEmployees() {
+  db.query('SELECT * FROM department', function (err, results) {
+    if (err) {
+      // Handle the error, e.g., return an error response
+      return console.error(err);
+    } else {
+      console.table(results)
+      init()
+    }
+  }) 
+}
+
+function init() {
   return inquirer
     .prompt([
       {
         type: 'list',
         message: 'What would you like to do?',
-        choices: ['Add Department', 'Add Employee', 'Add Role', 'Update Department', "Update Employee", 'Update Role', 'View All Departments', 'View All Employees', 'View All Roles', 'Remove Department', 'Remove Employee', 'Remove Role','Quit' ],
+        choices: [
+          'View all Employees',
+          'Add Employee',
+          'Update Employee Role',
+          'View All Roles',
+          'Add Role',
+          'View All Departments',
+          'Add Department',
+          'Remove Department',
+          'Remove Employee',
+          'Remove Role',
+          'Quit'
+        ],
         name: 'option'
       }
     ])
-    .then(({option}) => {
+    .then(({ option }) => {
       switch (option) {
-        case 'View All Employees':
-          console.table(employeeDataArray)
-          init()
+        case 'View all Employees':
+          viewAllEmployees();
           break;
         case 'Add Employee':
-          addEmployee()
+          addEmployee();
           break;
         case 'Update Employee Role':
-          updateEmployee()
+          updateEmployee();
           break;
         case 'View All Roles':
-          console.table(roleDataArray)
-          init()
+          viewAllRoles();
           break;
         case 'Add Role':
-          addRole()
+          addRole();
           break;
         case 'View All Departments':
-          console.table(departmentDataArray)
-          init()
+          viewAllDepartments();
           break;
         case 'Add Department':
-          addDepartment()
+          addDepartment();
           break;
         case 'Remove Department':
-          removeDepartment()
+          removeDepartment();
           break;
         case 'Remove Employee':
-          removeEmployee()
+          removeEmployee();
           break;
         case 'Remove Role':
-          removeRole()
+          removeRole();
           break;
+        case 'Quit':
+          console.log('Goodbye!');
+          process.exit(0);
         default:
+          console.log('Invalid option. Please choose a valid option.');
+          init();
       }
     })
+    .catch((error) => {
+      console.error('An error occurred:', error);
+    });
 }
 
 init();
