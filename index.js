@@ -66,35 +66,29 @@ function init () {
     ])
     .then(({option}) => {
       switch (option) {
-        case 'Add Department':
-          addDepartment()
+        case 'View All Employees':
+          console.table(employeeDataArray)
+          init()
           break;
         case 'Add Employee':
           addEmployee()
           break;
-        case 'Add Role':
-          addRole()
-          break;
-        case 'Update Department':
-          updateDepartment()
-          break;
-        case 'Update Employee':
+        case 'Update Employee Role':
           updateEmployee()
           break;
-        case 'Update Role':
-          updateRole()
+        case 'View All Roles':
+          console.table(roleDataArray)
+          init()
+          break;
+        case 'Add Role':
+          addRole()
           break;
         case 'View All Departments':
           console.table(departmentDataArray)
           init()
           break;
-        case 'View All Employees':
-          console.table(employeeDataArray)
-          init()
-          break;
-        case 'View All Roles':
-          console.table(roleDataArray)
-          init()
+        case 'Add Department':
+          addDepartment()
           break;
         case 'Remove Department':
           removeDepartment()
