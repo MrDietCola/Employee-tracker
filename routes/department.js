@@ -31,6 +31,21 @@ async function addDepartmentToDatabase(department) {
   return queryAsync(sql, department);
 }
 
+async function addDepartmentToDatabase(department) {
+  return new Promise((resolve, reject) => {
+  const sql = 'INSERT INTO department (department_name) VALUES (?)';
+  const params = department;
+  
+  db.query(sql, params, function (err, results) {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(results);
+    }
+  });
+});
+}
+
 // Export the function for use in other modules
 module.exports = {
   getDepartments,

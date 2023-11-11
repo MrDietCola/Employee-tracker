@@ -125,7 +125,7 @@ async function addDepartment() {
     await departmentModule.addDepartmentToDatabase(answers.departmentName);
     
     console.log(`Department: ${answers.departmentName} added successfully`);
-    // Initiate any further actions or return to the main menu
+    init()
   } catch (error) {
     console.error('An error occurred:', error);
   }
@@ -170,7 +170,6 @@ async function addRole() {
     
     console.log('Role successfully added');
     init()
-    // Initiate any further actions or return to the main menu
   } catch (error) {
     console.error('An error occurred:', error);
   }
