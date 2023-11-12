@@ -23,6 +23,21 @@ db.query('SELECT e.id AS employee_id, e.first_name, e.last_name, r.title AS role
   });
 }
 
+async function getEmployeeByName(firstName, lastName) {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM employee WHERE first_name = ? AND last_name = ?';
+    const params = [firstName, lastName];
+  
+    db.query(sql, params, function (err, results) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
 async function addEmployeeToDatabase(employee) {
   return new Promise((resolve, reject) => {
   const sql = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
@@ -38,9 +53,26 @@ async function addEmployeeToDatabase(employee) {
 });
 }
 
+async function updateEmployeeRole(employee) {
+  return new Promise((resolve, reject) => {
+  const sql = 'UPDATE employee SET first_name=?, last_name=?, role_id=?, manager_id=? WHERE id=?';
+  const params = [employee.first_name, employee.last_name, employee.role_id, employee.manager_id, employee.id];
+
+  db.query(sql, params, function (err, results) {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(results);
+    }
+  });
+});
+}
+
 // Export the function for use in other modules
 module.exports = {
   getEmployees,
   addEmployeeToDatabase,
+  getEmployeeByName,
+  updateEmployeeRole
 };
 
