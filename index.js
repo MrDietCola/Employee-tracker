@@ -1,3 +1,4 @@
+// Import necessary modules
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 
@@ -5,6 +6,7 @@ const departmentModule = require('./routes/department');
 const roleModule = require('./routes/role');
 const employeeModule = require('./routes/employee');
 
+// Create a database connection pool
 const db = mysql.createPool(
   {
     host: 'localhost',
@@ -15,8 +17,10 @@ const db = mysql.createPool(
   console.log(`Connected to the staff_db database.`)
 );
 
+// Function to initialize the application
 async function init() {
   return inquirer
+  // Prompt the user to choose an action
     .prompt([
       {
         type: 'list',
@@ -39,6 +43,7 @@ async function init() {
     ])
     .then(({ option }) => {
       switch (option) {
+        // Switch based on user's choice
         case 'View all Employees':
           viewAllEmployees();
           break;
@@ -82,8 +87,10 @@ async function init() {
     });
 }
 
+// Function to view all employees
 async function viewAllEmployees() {
   try {
+    // Retrieve employees and display in a table
     const employees = await employeeModule.getEmployees();
     console.table(employees.objects)
     init()
@@ -92,8 +99,10 @@ async function viewAllEmployees() {
   }
 }
 
+// Function to view all roles
 async function viewAllRoles() {
   try {
+    // Retrieve roles and display in a table
     const roles = await roleModule.getRoles();
     console.table(roles.viewAll)
     init()
@@ -102,8 +111,10 @@ async function viewAllRoles() {
   }
 }
 
+// Function to view all departments
 async function viewAllDepartments() {
   try {
+    // Retrieve departmentss and display in a table
     const departments = await departmentModule.getDepartments();
     console.table(departments.names)
     init()
@@ -112,8 +123,10 @@ async function viewAllDepartments() {
   }
 }
 
+// Function to add a new department
 async function addDepartment() {
   try {
+    // Prompt for user to create department name
     const answers = await inquirer.prompt([
       {
         type: 'input',
@@ -131,12 +144,13 @@ async function addDepartment() {
   }
 }
 
+// Function to add a new role
 async function addRole() {
   try {
     // Fetch departments from the database
     const { names, objects } = await departmentModule.getDepartments();
     
-    // Execute the database query and then prompt the user
+    // Prompt for user to create new role
     const answers = await inquirer.prompt([
       {
         type: 'input',
@@ -156,6 +170,7 @@ async function addRole() {
       },
     ]);
     
+    // Get department id to create new role
     const department = objects.find((dep) => dep.name === answers.department);
 
     // Create an object with the role information
@@ -175,11 +190,13 @@ async function addRole() {
   }
 }
 
+// Function to add new employee
 async function addEmployee() {
   try {
+    // Fetch employees and roles from database
     const employees = await employeeModule.getEmployees();
     const positions = await roleModule.getRoles()
-
+    // Prompt for user to create employee
     const employeeData = await inquirer.prompt([
       {
         type: 'input',
@@ -204,17 +221,17 @@ async function addEmployee() {
         name: 'manager',
       },
     ]);
-
+    // Finding the role and manager from current db to get their id
     const role = positions.objects.find((role) => role.role_title === employeeData.position);
     const manager = employees.objects.find((employee) => `${employee.first_name} ${employee.last_name}` === employeeData.manager);
-
+    // New employee object to be created
     const employee = {
       first_name: employeeData.first_name,
       last_name: employeeData.last_name,
       role_id: role.id,
       manager_id: manager.employee_id
     };
-
+    //Insert then new employee to database
     await employeeModule.addEmployeeToDatabase(employee);
     console.log('Employee added');
     init()
@@ -222,12 +239,13 @@ async function addEmployee() {
     console.error('An error occurred:', error);
   }
 }
-
+// Function for updating the role of an employee
 async function updateEmployeeRole() {
   try {
+    // Fetching current employees and roles from database
     const employees = await employeeModule.getEmployees();
     const positions = await roleModule.getRoles()
-
+    // Prompt for user to choose employee to update
     const employeeData = await inquirer.prompt([
       {
         type: 'list',
@@ -236,7 +254,7 @@ async function updateEmployeeRole() {
         name: 'employee',
       },
     ]);
-
+    // creating a list of roles for user to choose from that does not include the employees current role
     const currentEmployee = employees.objects.find((employee) => `${employee.first_name} ${employee.last_name}` === employeeData.employee);
     const possiblePositions = [];
     for (let i = 0; i < positions.objects.length; i++) {
@@ -244,8 +262,9 @@ async function updateEmployeeRole() {
         possiblePositions.push(positions.objects[i].role_title)
       }
     }
+    // Getting the chosen employees current info
     const employeeinfo = await employeeModule.getEmployeeByName(currentEmployee.first_name, currentEmployee.last_name)
-
+    // Prompt for user to choose new role for employee
     const updatedRoleData = await inquirer.prompt([
       {
         type: 'list',
@@ -254,8 +273,9 @@ async function updateEmployeeRole() {
         name: 'position',
       },
     ]);
-
+    // Finding the id of the chosen role
     const role = positions.objects.find((role) => role.role_title === updatedRoleData.position);
+    // Creating object of updated employee
     const employee = {
       first_name: employeeinfo[0].first_name,
       last_name: employeeinfo[0].last_name,
@@ -263,6 +283,7 @@ async function updateEmployeeRole() {
       manager_id: employeeinfo[0].manager_id,
       id: employeeinfo[0].id,
     }
+    // Updating the employee in the database
     await employeeModule.updateEmployeeRole(employee);
     console.log('Employee Updated')
     init()
@@ -270,11 +291,12 @@ async function updateEmployeeRole() {
     console.error('An error occurred:', error);
   }
 }
-
+// Function to remove an employee
 async function removeEmployee() {
   try {
+    // Getting current employees
     const employees = await employeeModule.getEmployees();
-
+    // Prompt for user to choose employee to remove
     const employeeData = await inquirer.prompt([
       {
         type: 'list',
@@ -283,7 +305,9 @@ async function removeEmployee() {
         name: 'employee',
       },
     ]);
+    // Finding the id of the chosen employee
     const employee = employees.objects.find((employee) => `${employee.first_name} ${employee.last_name}` === employeeData.employee);
+    // Removing employee from database
     await employeeModule.removeEmployeeFromDatabase(employee.employee_id);
     console.log('Employee Removed');
     init();
@@ -292,10 +316,12 @@ async function removeEmployee() {
   }
 }
 
+// Function to remove a department
 async function removeDepartment() {
   try {
+    // Getting current departments
     const departments = await departmentModule.getDepartments();
-
+    // Prompt for user to choose department to remove
     const departmentData = await inquirer.prompt([
       {
         type: 'list',
@@ -304,9 +330,9 @@ async function removeDepartment() {
         name: 'department',
       },
     ]);
-    const department = departments.objects.find((department) => department.name === departmentData.department);
-    console.log(department);
-    
+    // Finding the id of the chosen department
+    const department = departments.objects.find((department) => department.name === departmentData.department);    
+    // Removing department from database
     await departmentModule.removeDepartmentFromDatabase(department.id);
     console.log('Department Removed');
     init();
@@ -315,10 +341,12 @@ async function removeDepartment() {
   }
 }
 
+// Function to remove a role
 async function removeRole() {
   try {
+    // Getting current roles
     const roles = await roleModule.getRoles();
-    console.log(roles.objects[0]);
+    // Prompt for user to choose role to remove
     const roleData = await inquirer.prompt([
       {
         type: 'list',
@@ -327,10 +355,9 @@ async function removeRole() {
         name: 'role',
       },
     ]);
-
+    // Finding the id of the chosen role
     const role = roles.objects.find((role) => role.role_title === roleData.role);
-    console.log(role);
-    
+    // Removing role from database
     await roleModule.removeRoleFromDatabase(role.id);
     console.log('Role Removed');
     init();
@@ -338,5 +365,5 @@ async function removeRole() {
     console.error('An error occurred:', error);
   }
 }
-
+// Initializing the app by running the init function
 init();
