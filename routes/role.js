@@ -43,10 +43,25 @@ async function addRoleToDataBase(roleData) {
   });
 }
 
+async function removeRoleFromDatabase(role) {
+  return new Promise((resolve, reject) => {
+  const sql = 'DELETE FROM role WHERE id = ?';
+
+  db.query(sql, role, function (err, results) {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(results);
+    }
+  });
+});
+}
+
 // Export functions for use in other modules
 module.exports = {
   getRoles,
   addRoleToDataBase,
+  removeRoleFromDatabase
 };
 
 

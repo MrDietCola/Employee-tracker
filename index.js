@@ -15,7 +15,7 @@ const db = mysql.createPool(
   console.log(`Connected to the staff_db database.`)
 );
 
-function init() {
+async function init() {
   return inquirer
     .prompt([
       {
@@ -216,6 +216,8 @@ async function addEmployee() {
     };
 
     await employeeModule.addEmployeeToDatabase(employee);
+    console.log('Employee added');
+    init()
   } catch (error) {
     console.error('An error occurred:', error);
   }
@@ -269,286 +271,72 @@ async function updateEmployeeRole() {
   }
 }
 
-init();
+async function removeEmployee() {
+  try {
+    const employees = await employeeModule.getEmployees();
 
-
-
-function removeDepartment() {
-  const departments = []
-  db.query('SELECT department_name FROM department', function (err, results) {
-    if (err) {
-      // Handle the error, e.g., return an error response
-      console.error(err);
-    } else {
-      results.forEach(department => {
-        departments.push(department.department_name);
-      });
-      inquirer
-        .prompt([
-          {
-            type: 'list',
-            message: 'Which department would you like to remove?',
-            choices: departments, 
-            name: 'removeDep',
-          },
-        ])
-        .then(({ removeDep }) => {
-          console.log(`Removing department: ${removeDep}`);
-
-          const sql = 'DELETE FROM department WHERE department_name = ?';
-          db.query(sql, removeDep, function (err, results) {
-            if (err) {
-              console.error(err);
-              init()
-            } else {
-              console.log('Department removed.');
-              init()
-            }
-          });
-        });
-    }
-  });
+    const employeeData = await inquirer.prompt([
+      {
+        type: 'list',
+        message: 'Which employee would you like to remove?',
+        choices: employees.names,
+        name: 'employee',
+      },
+    ]);
+    const employee = employees.objects.find((employee) => `${employee.first_name} ${employee.last_name}` === employeeData.employee);
+    await employeeModule.removeEmployeeFromDatabase(employee.employee_id);
+    console.log('Employee Removed');
+    init();
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
 }
 
+async function removeDepartment() {
+  try {
+    const departments = await departmentModule.getDepartments();
 
+    const departmentData = await inquirer.prompt([
+      {
+        type: 'list',
+        message: 'Which department would you like to remove?',
+        choices: departments.names,
+        name: 'department',
+      },
+    ]);
+    const department = departments.objects.find((department) => department.name === departmentData.department);
+    console.log(department);
+    
+    await departmentModule.removeDepartmentFromDatabase(department.id);
+    console.log('Department Removed');
+    init();
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+}
 
+async function removeRole() {
+  try {
+    const roles = await roleModule.getRoles();
+    console.log(roles.objects[0]);
+    const roleData = await inquirer.prompt([
+      {
+        type: 'list',
+        message: 'Which role would you like to remove?',
+        choices: roles.names,
+        name: 'role',
+      },
+    ]);
 
+    const role = roles.objects.find((role) => role.role_title === roleData.role);
+    console.log(role);
+    
+    await roleModule.removeRoleFromDatabase(role.id);
+    console.log('Role Removed');
+    init();
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+}
 
-
-// function updateDepartment() {
-//   const departments = []
-//   let departmentsArray;
-//   db.query('SELECT * FROM department', function (err, results) {
-//     if (err) {
-//       // Handle the error, e.g., return an error response
-//       console.error(err);
-//     } else {
-//       departmentsArray = results
-//       results.forEach(department => {
-//         departments.push(department.department_name);
-//       });
-//       inquirer
-//         .prompt([
-//           {
-//             type: 'list',
-//             message: 'Which department would you like to update?',
-//             choices: departments, 
-//             name: 'updateDep',
-//           },
-//           {
-//             type: 'input',
-//             message: 'What would you like to change the name too?',
-//             name: 'newName',
-//           },
-//         ])
-//         .then((update) => {
-//           console.log(`Updating department: ${update.updateDep}`);
-
-//           let params;
-//           const sql = 'UPDATE department SET department_name=? WHERE id=?';
-//           for (let index = 0; index < results.length; index++) {
-//             const element = departmentsArray[index].department_name;
-//             if (element === update.updateDep) {
-//               params = [update.newName, departmentsArray[index].id]  
-//             }
-//           }           
-//           db.query(sql, params, (err, results) => {
-//             if (err) {
-//               console.error(err);
-//             } else {
-//               console.log('Department updated successfully.');
-//               init()
-//             }
-//           })
-//         })
-//     }
-//   })
-// }
-
-
-
-// function removeEmployee() {
-//   const employees = []
-//   let employeesArray;
-//   db.query('SELECT * FROM employee', function (err, results) {
-//     if (err) {
-//       // Handle the error, e.g., return an error response
-//       console.error(err);
-//     } else {
-//       employeesArray = results;
-//       results.forEach(employee => {
-//         employees.push(`${employee.first_name} ${employee.last_name}`);
-//       });
-//       inquirer
-//         .prompt([
-//           {
-//             type: 'list',
-//             message: 'Which employee would you like to remove?',
-//             choices: employees, 
-//             name: 'removeEmp',
-//           },
-//         ])
-//         .then((employee) => {
-//           console.log(`Removing employee: ${employee.removeEmp}`);
-
-//           const sql = 'DELETE FROM employee WHERE id = ?';
-//           let params;
-
-//           for (let index = 0; index < employeesArray.length; index++) {
-//             const element = `${employeesArray[index].first_name} ${employeesArray[index].last_name}`;
-//             if (element === employee.removeEmp) {
-//               params = [employeesArray[index].id]
-//             }            
-//           }
-
-//           db.query(sql, params, function (err, results) {
-//             if (err) {
-//               console.error(err);
-//               init()
-//             } else {
-//               console.log('Employee removed.');
-//               getEmployees()
-//             }
-//           });
-//         });
-//     }
-//   });
-// }
-
-// function updateEmployee() {
-//   let employeeToUpdate;
-//   inquirer
-//   .prompt([
-//     {
-//       type: 'list',
-//       message: 'Select an employee to update:',
-//       choices: employeeList,
-//       name: 'employeeToUpdate',
-//     },
-
-//   ])
-//     .then((employee) => {
-//       employeeToUpdate = employee.employeeToUpdate;
-//       const updatedEmployees = employeeList.filter((employee) => employee !== employeeToUpdate)
-//       inquirer
-//         .prompt([
-//           {
-//             type: 'input',
-//             message: 'Enter the updated first name:',
-//             name: 'updatedFirstName',
-//           },
-//           {
-//             type: 'input',
-//             message: 'Enter the updated last name:',
-//             name: 'updatedLastName',
-//           },
-//           {
-//             type: 'list',
-//             message: 'Pick a new role',
-//             choices: roles,
-//             name: 'updatedRole',
-//           },
-//           {
-//             type: 'list',
-//             message: 'Choose a manager',
-//             choices: updatedEmployees,
-//             name: 'updatedManager',
-//           },
-//         ])
-//           .then((updatedEmployeeInfo) => {
-//             let newRole = roleDataArray.filter((role) => role.title === updatedEmployeeInfo.updatedRole)
-//             const newManagerIdString = updatedEmployeeInfo.updatedManager.match(/\d+/g);
-//             const newManageId = newManagerIdString.map(number => parseInt(number, 10));
-//             const employeeIdString = employeeToUpdate.match(/\d+/g);
-//             const employeeId = employeeIdString.map(number => parseInt(number, 10));
-//             let params = [updatedEmployeeInfo.updatedFirstName, updatedEmployeeInfo.updatedLastName, newRole[0].id, newManageId, employeeId];
-            
-//             db.query('UPDATE employee SET first_name=?, last_name=?, role_id=?, manager_id=? WHERE id=?', params, (err, results) => {
-//               if (err) {
-//                 console.error(err);
-//               } else {
-//                 console.log('Employee updated successfully.');
-//                 init()
-//               }
-//         })
-//           })    
-//     })
-// }
-
-
-
-// function removeRole() {
-//   return inquirer
-//   .prompt([
-//     {
-//       type: 'list',
-//       message: 'Which role would you like to remove?',
-//       choices: roles,
-//       name: 'roleRemove',
-//     },
-//   ])
-//   .then(({roleRemove}) => {
-//     const param = roleDataArray.filter((role) => role.title === roleRemove);
-//     db.query('DELETE FROM role WHERE id = ?', param[0].id,  function (err, results) {
-//           if (err) {
-//             res.statusMessage(400).json({err: err})
-//           } else if (!results.affectedRows) {
-//             console.log({message: 'Id not found'});
-//           } else {
-//             console.log('Role successfully removed')
-//             init()
-//           }
-//         })
-//   })
-// }
-
-// function updateRole() {
-//   let roleToUpdate;
-//   return inquirer
-//   .prompt([
-//     {
-//       type: 'list',
-//       message: 'Which role would you like to update?',
-//       choices: roles,
-//       name: 'roleUpdate',
-//     },
-//   ])
-//   .then(({roleUpdate}) => {
-//     roleToUpdate = roleUpdate;
-//     inquirer
-//     .prompt([
-//       {
-//         type: 'input',
-//         message: 'Enter the updated role title:',
-//         name: 'newTitle',
-//       },
-//       {
-//         type: 'number',
-//         message: 'Enter the updated salary:',
-//         name: 'newSalary',
-//       },
-//       {
-//         type: 'list',
-//         message: 'Pick a new department',
-//         choices: departments,
-//         name: 'newDepartment',
-//       },
-//     ])
-//     .then ((response) => {
-//       const roleId = roleDataArray.filter((role) => role.title === roleToUpdate)
-//       const departmentId = departmentDataArray.filter((department) => department.department_name === response.newDepartment);
-//       const params = [response.newTitle, response.newSalary, departmentId[0].id, roleId[0].id]
-//       db.query('UPDATE role SET title=?, salary=?, department_id=? WHERE id=?', params,  function (err, results) {
-//         if (err) {
-//           console.log(err);
-//         } else if (!results.affectedRows) {
-//           console.log({message: 'Id not found'});
-//           init()
-//         } else {
-//           console.log('Role successfully updated')
-//           init()
-//         }
-//       })
-//     })
-//   })
-// }
+init();

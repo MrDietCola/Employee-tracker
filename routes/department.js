@@ -41,9 +41,24 @@ async function addDepartmentToDatabase(department) {
 });
 }
 
+async function removeDepartmentFromDatabase(department) {
+  return new Promise((resolve, reject) => {
+  const sql = 'DELETE FROM department WHERE id = ?';
+
+  db.query(sql, department, function (err, results) {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(results);
+    }
+  });
+});
+}
+
 // Export the function for use in other modules
 module.exports = {
   getDepartments,
   addDepartmentToDatabase,
+  removeDepartmentFromDatabase
 };
 

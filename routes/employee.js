@@ -68,11 +68,26 @@ async function updateEmployeeRole(employee) {
 });
 }
 
+async function removeEmployeeFromDatabase(employee) {
+  return new Promise((resolve, reject) => {
+  const sql = 'DELETE FROM employee WHERE id = ?';
+
+  db.query(sql, employee, function (err, results) {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(results);
+    }
+  });
+});
+}
+
 // Export the function for use in other modules
 module.exports = {
   getEmployees,
   addEmployeeToDatabase,
   getEmployeeByName,
-  updateEmployeeRole
+  updateEmployeeRole, 
+  removeEmployeeFromDatabase
 };
 
