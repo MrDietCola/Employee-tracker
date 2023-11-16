@@ -171,8 +171,7 @@ async function addRole() {
     ]);
     
     // Get department id to create new role
-    const department = objects.find((dep) => dep.name === answers.department);
-
+    const department = objects.find((dep) => dep.department_name === answers.department);
     // Create an object with the role information
     const roleData = {
       title: answers.title,
@@ -196,6 +195,11 @@ async function addEmployee() {
     // Fetch employees and roles from database
     const employees = await employeeModule.getEmployees();
     const positions = await roleModule.getRoles()
+    const managers = ['None']
+    for (let i = 0; i < employees.names.length; i++) {
+      managers.push(employees.names[i])
+    }
+    console.log(managers);
     // Prompt for user to create employee
     const employeeData = await inquirer.prompt([
       {
@@ -217,23 +221,29 @@ async function addEmployee() {
       {
         type: 'list',
         message: 'Choose a manager',
-        choices: employees.add,
+        choices: managers,
         name: 'manager',
       },
     ]);
     // Finding the role and manager from current db to get their id
     const role = positions.objects.find((role) => role.role_title === employeeData.position);
-    const manager = employees.objects.find((employee) => `${employee.first_name} ${employee.last_name}` === employeeData.manager);
+    let manager;
+    let managerInfo;
+    if (employeeData.manager === 'None') {
+      manager = null
+    } else {
+      managerInfo = employees.objects.find((employee) => `${employee.first_name} ${employee.last_name}` === employeeData.manager);
+      manager = managerInfo.employee_id
+    }
     // New employee object to be created
     const employee = {
       first_name: employeeData.first_name,
       last_name: employeeData.last_name,
       role_id: role.id,
-      manager_id: manager.employee_id
+      manager_id: manager
     };
     //Insert then new employee to database
     await employeeModule.addEmployeeToDatabase(employee);
-    console.log('Employee added');
     init()
   } catch (error) {
     console.error('An error occurred:', error);
@@ -331,7 +341,7 @@ async function removeDepartment() {
       },
     ]);
     // Finding the id of the chosen department
-    const department = departments.objects.find((department) => department.name === departmentData.department);    
+    const department = departments.objects.find((department) => department.department_name === departmentData.department);    
     // Removing department from database
     await departmentModule.removeDepartmentFromDatabase(department.id);
     console.log('Department Removed');

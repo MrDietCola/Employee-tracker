@@ -1,4 +1,6 @@
+// Import necessary modules
 const mysql = require('mysql2');
+// Create a database connection pool
 const db = mysql.createPool(
   {
     host: 'localhost',
@@ -8,21 +10,24 @@ const db = mysql.createPool(
   },
 );
 
+// Function to get all employees from database
 async function getEmployees() {
   return new Promise((resolve, reject) => {
 db.query('SELECT e.id AS employee_id, e.first_name, e.last_name, r.title AS role_title, r.salary, CONCAT(m.first_name, m.last_name) AS manager_name FROM employee e JOIN role r ON e.role_id = r.id LEFT JOIN employee m ON e.manager_id = m.id', function (err, results) {
       if (err) {
         reject(err);
       } else {
+        // Create an array of employees names to use in the prompt
         const employeeNames = results.map((employee) => `${employee.first_name} ${employee.last_name}`);
-        const addEmployeeChoices = employeeNames;
-        addEmployeeChoices.unshift('None')
-        resolve({ names: employeeNames, add: addEmployeeChoices, objects: results });
+        // const addEmployeeChoices = employeeNames;
+        // addEmployeeChoices.unshift('None')
+        resolve({ names: employeeNames, objects: results });
       }
     });
   });
 }
 
+// Function to add a department to the database
 async function getEmployeeByName(firstName, lastName) {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT * FROM employee WHERE first_name = ? AND last_name = ?';
@@ -38,6 +43,7 @@ async function getEmployeeByName(firstName, lastName) {
   });
 }
 
+// Function to add an employee to the database
 async function addEmployeeToDatabase(employee) {
   return new Promise((resolve, reject) => {
   const sql = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
@@ -53,6 +59,7 @@ async function addEmployeeToDatabase(employee) {
 });
 }
 
+// Function to update an employees role
 async function updateEmployeeRole(employee) {
   return new Promise((resolve, reject) => {
   const sql = 'UPDATE employee SET first_name=?, last_name=?, role_id=?, manager_id=? WHERE id=?';
@@ -68,6 +75,7 @@ async function updateEmployeeRole(employee) {
 });
 }
 
+// Function to remove employee from database
 async function removeEmployeeFromDatabase(employee) {
   return new Promise((resolve, reject) => {
   const sql = 'DELETE FROM employee WHERE id = ?';
