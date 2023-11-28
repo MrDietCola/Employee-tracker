@@ -1,6 +1,6 @@
 # Employee-tracker
 
-https://github.com/MrDietCola/Employee-tracker
+https://github.com/Seidler93/Employee-tracker
 
 https://youtu.be/jyVmS1fM8W0
 
